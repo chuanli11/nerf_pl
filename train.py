@@ -89,8 +89,8 @@ class NeRFSystem(LightningModule):
     def train_dataloader(self):
         return DataLoader(self.train_dataset,
                           shuffle=True,
-                          num_workers=4,
-                          batch_size=self.hparams.batch_size,
+                          num_workers= 4 * self.hparams.num_gpus,
+                          batch_size=self.hparams.batch_size * self.hparams.num_gpus,
                           pin_memory=True)
 
     def val_dataloader(self):
@@ -152,12 +152,15 @@ class NeRFSystem(LightningModule):
 
 if __name__ == '__main__':
     hparams = get_opts()
+    hparams.gpus = hparams.gpus.split(',')
+    hparams.gpus = [int(i) for i in hparams.gpus]
+    hparams.num_gpus = len(hparams.gpus)
     system = NeRFSystem(hparams)
     checkpoint_callback = ModelCheckpoint(filepath=os.path.join(f'ckpts/{hparams.exp_name}',
                                                                 '{epoch:d}'),
                                           monitor='val/loss',
                                           mode='min',
-                                          save_top_k=5,)
+                                          save_top_k=-1,)
 
     logger = TestTubeLogger(
         save_dir="logs",
@@ -173,7 +176,7 @@ if __name__ == '__main__':
                       early_stop_callback=None,
                       weights_summary=None,
                       progress_bar_refresh_rate=1,
-                      gpus=hparams.num_gpus,
+                      gpus=hparams.gpus,
                       distributed_backend='ddp' if hparams.num_gpus>1 else None,
                       num_sanity_val_steps=1,
                       benchmark=True,
