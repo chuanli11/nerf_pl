@@ -29,3 +29,36 @@ git clone --recursive https://github.com/chuanli11/nerf_pl
 * running `eval.py` can also freeze the program.
 * `testall` does not pass the LLFF stage
 * `test2` produces poor rendering results
+
+#### Commands
+
+```
+python train.py \
+   --dataset_name llff \
+   --root_dir ~/nerf/data/nerf_llff_data/test1 \
+   --N_importance 64 --img_wh 1024 683 \
+   --num_epochs 20 --batch_size 1024 \
+   --optimizer adam --lr 5e-4 \
+   --lr_scheduler steplr --decay_step 10 20 --decay_gamma 0.5 \
+   --exp_name exp \
+   --num_gpus 2
+
+
+CUDA_VISIBLE_DEVICES=0 python eval.py \
+   --root_dir /tmp/ubuntu/data_consiliencecap/test1 \
+   --dataset_name llff --scene_name test1 \
+   --img_wh 1024 683 --N_importance 64 --ckpt_path /tmp/ubuntu/nerf_pl/ckpts/exp_test1/epoch=29.ckpt
+
+
+python extract_color_mesh.py \
+    --root_dir ~/nerf/data/nerf_llff_data/test1 \
+    --dataset_name llff \
+    --scene_name test1 \
+    --img_wh 1024 683 \
+    --ckpt_path /home/ubuntu/nerf_pl/ckpts/exp/epoch=16.ckpt \
+    --N_grid 256 \
+    --sigma_threshold 0. \
+    --occ_threshold 0.
+```
+
+
